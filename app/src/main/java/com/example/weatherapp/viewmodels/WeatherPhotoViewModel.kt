@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
+import com.example.movielist.ConnectivityUtil
 import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.data.internal.PostEntity
 import com.example.weatherapp.models.Weather
@@ -54,28 +55,32 @@ class WeatherPhotoViewModel(
 
 
     fun getWeatherInfo() {
-        Log.i(TAG, "lat: " + liveDataLatitude.value)
-        Log.i(TAG, "lang:" + liveDataLongitude.value)
-        if (liveDataLatitude.value != null && liveDataLongitude.value != null) {
-            weatherRepository.getWeatherData(liveDataLatitude.value!!, liveDataLongitude.value!!)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                    { data ->
-                        liveDataWeather.value = data
-                        Log.i(TAG, "getWeatherInfo() - data: " + data)
-                    },
-                    { e ->
-//                        errorMessage.value = e.message
-                        Log.i(TAG, "getWeatherInfo() - error: " + e.message)
-                    },
-                    {
-                        println("onComplete")
-                    }
+        val isConnected = ConnectivityUtil.isInternetAvailable(getApplication())
+        if (isConnected) {
+            if (liveDataLatitude.value != null && liveDataLongitude.value != null) {
+                weatherRepository.getWeatherData(
+                    liveDataLatitude.value!!,
+                    liveDataLongitude.value!!
                 )
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(
+                        { data ->
+                            liveDataWeather.value = data
+                            Log.i(TAG, "getWeatherInfo() - data: " + data)
+                        },
+                        { e ->
+//                        errorMessage.value = e.message
+                            Log.i(TAG, "getWeatherInfo() - error: " + e.message)
+                        },
+                        {
+                            println("onComplete")
+                        }
+                    )
+            }
+        } else {
+            errorMessage.value = "Check internet connection"
         }
-//            .subscribe(this@WeatherPhotoViewModel, Observer { weatherData ->
-//            })
     }
 
     fun savePhoto() {
@@ -108,12 +113,12 @@ class WeatherPhotoViewModel(
         Log.i(TAG, "setSavedPosts()")
         liveDataSavedPhotos.value = ArrayList()
 //        if (data.size>0) {
-            val stringList: ArrayList<String> = ArrayList()
-            for (element in data) {
-                Log.i(TAG, "setSavedPosts() - data")
-                stringList.add(element.image_path)
-            }
-            liveDataSavedPhotos.value = stringList
+        val stringList: ArrayList<String> = ArrayList()
+        for (element in data) {
+            Log.i(TAG, "setSavedPosts() - data")
+            stringList.add(element.image_path)
+        }
+        liveDataSavedPhotos.value = stringList
 //        }
     }
 
