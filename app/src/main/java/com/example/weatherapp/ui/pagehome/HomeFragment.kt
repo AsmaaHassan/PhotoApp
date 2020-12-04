@@ -117,7 +117,7 @@ class HomeFragment : Fragment(), KodeinAware {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(activity)
             if (weatherPhotoViewModel.liveDataSavedPhotos.value != null)
-                adapter = ImagesAdapter(weatherPhotoViewModel.liveDataSavedPhotos.value!!)
+                adapter = ImagesAdapter(weatherPhotoViewModel.liveDataSavedPhotos.value!!, this@HomeFragment.context)
         }
     }
 

@@ -23,8 +23,8 @@ class WeatherPhotoViewModel(
     /**
     LiveData
      **/
-    val liveDataSavedPhotos: MutableLiveData<ArrayList<String>> =
-        MutableLiveData<ArrayList<String>>()
+    val liveDataSavedPhotos: MutableLiveData<List<PostEntity>> =
+        MutableLiveData<List<PostEntity>>()
 
     val liveDataCurrentFile: MutableLiveData<File> =
         MutableLiveData<File>()
@@ -67,11 +67,13 @@ class WeatherPhotoViewModel(
                     .subscribe(
                         { data ->
                             liveDataWeather.value = data
+                            isLoading.value = false
                             Log.i(TAG, "getWeatherInfo() - data: " + data)
                         },
                         { e ->
 //                        errorMessage.value = e.message
                             Log.i(TAG, "getWeatherInfo() - error: " + e.message)
+                            isLoading.value = false
                         },
                         {
                             println("onComplete")
@@ -79,6 +81,7 @@ class WeatherPhotoViewModel(
                     )
             }
         } else {
+            isLoading.value = false
             errorMessage.value = "Check internet connection"
         }
     }
@@ -111,14 +114,14 @@ class WeatherPhotoViewModel(
 
     private fun setSavedPostsValue(data: List<PostEntity>) {
         Log.i(TAG, "setSavedPosts()")
-        liveDataSavedPhotos.value = ArrayList()
-//        if (data.size>0) {
-        val stringList: ArrayList<String> = ArrayList()
-        for (element in data) {
-            Log.i(TAG, "setSavedPosts() - data")
-            stringList.add(element.image_path)
-        }
-        liveDataSavedPhotos.value = stringList
+//        liveDataSavedPhotos.value = ArrayList()
+////        if (data.size>0) {
+//        val stringList: ArrayList<String> = ArrayList()
+//        for (element in data) {
+//            Log.i(TAG, "setSavedPosts() - data")
+//            stringList.add(element.image_path)
+//        }
+        liveDataSavedPhotos.value = data
 //        }
     }
 

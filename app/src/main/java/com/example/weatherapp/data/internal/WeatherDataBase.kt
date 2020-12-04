@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 
-@Database(entities = arrayOf(PostEntity::class), version = 2, exportSchema = false)
+@Database(entities = arrayOf(PostEntity::class), version = 3, exportSchema = false)
 public abstract class WeatherDataBase : RoomDatabase() {
     abstract fun weatherDao(): WeatherDao
 

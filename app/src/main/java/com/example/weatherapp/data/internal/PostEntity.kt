@@ -8,5 +8,6 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "posts_table")
 data class PostEntity(
-    @PrimaryKey() val image_path: String
+    @PrimaryKey() val image_path: String,
+    val date: String
 )

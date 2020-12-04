@@ -1,6 +1,8 @@
 package com.example.weatherapp.ui.pagephoto
 
 import android.Manifest
+import android.app.AlertDialog
+import android.content.*
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -8,8 +10,10 @@ import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.location.Location
+import android.location.LocationManager
 import android.os.Bundle
 import android.os.Environment
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -78,6 +82,13 @@ class PhotoFragment : Fragment(), KodeinAware {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+
+        //trigger if GPS status is changed
+        getContext()?.registerReceiver(
+            gpsReceiver,
+            IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+        );
+
         //check permissions and get data
         checkLocationPermission()
 
@@ -108,6 +119,15 @@ class PhotoFragment : Fragment(), KodeinAware {
                 generateWeatherDataOverTheImage(weatherData)
             }
         })
+
+        weatherPhotoViewModel.isLoading.observe(viewLifecycleOwner, Observer { isLoading ->
+            prgPhoto.visibility =
+                if (isLoading) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+        })
     }
 
 
@@ -119,13 +139,49 @@ class PhotoFragment : Fragment(), KodeinAware {
                 LOCATION_PERMISSION_REQUEST_CODE
             )
         else {
-            getCurrentLocation()
+            if (checkLocationEnabled())
+                getCurrentLocation()
         }
 
     }
 
+
     private fun isLocationPermissionGranted(): Boolean {
         return PermissionUtils.isPermissionGranted(this, Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+
+    fun checkLocationEnabled(): Boolean {
+        val lm: LocationManager =
+            context!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        var gps_enabled = false
+        var network_enabled = false
+
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        } catch (ex: Exception) {
+        }
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+        } catch (ex: Exception) {
+        }
+
+        if (!gps_enabled && !network_enabled) {
+            // notify user
+            AlertDialog.Builder(context)
+                .setMessage(R.string.gps_network_not_enabled)
+                .setPositiveButton(
+                    R.string.open_location_settings,
+                    DialogInterface.OnClickListener { dialogInterface, i ->
+                        context!!.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                    })
+                .setNegativeButton(R.string.Cancel, null)
+                .show()
+            return false
+        } else {
+            return true
+        }
     }
 
     private fun getCurrentLocation() {
@@ -146,6 +202,7 @@ class PhotoFragment : Fragment(), KodeinAware {
 
     private fun getWeatherData() {
         Log.i(TAG, "getWeatherData")
+        weatherPhotoViewModel.isLoading.value = true
         weatherPhotoViewModel.getWeatherInfo()
     }
 
@@ -203,9 +260,7 @@ class PhotoFragment : Fragment(), KodeinAware {
         Glide.with(activity!!).asBitmap().load(weatherPhotoViewModel.liveDataCapturedImage.value)
             .into(object : CustomViewTarget<View, Bitmap>(overlay) {
                 override fun onLoadFailed(errorDrawable: Drawable?) {}
-
                 override fun onResourceCleared(placeholder: Drawable?) {}
-
                 override fun onResourceReady(
                     resource: Bitmap,
                     transition: Transition<in Bitmap>?
@@ -260,7 +315,8 @@ class PhotoFragment : Fragment(), KodeinAware {
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED
             ) {
                 // permission was granted.
-                getCurrentLocation()
+                if (checkLocationEnabled())
+                    getCurrentLocation()
             } else {
                 // permission denied
 //                PermissionUtils.showApplicationSettingsDialog(activity)
@@ -269,4 +325,28 @@ class PhotoFragment : Fragment(), KodeinAware {
 
     }
 
+    /*
+    trigger after user enable or disable the location setting
+     */
+    private val gpsReceiver: BroadcastReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent) {
+            if (intent.action!!.equals(LocationManager.PROVIDERS_CHANGED_ACTION)) {
+                // Make an action or refresh an already managed state.
+                val locationManager =
+                    context!!.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                val isNetworkEnabled =
+                    locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
+
+                // START DIALOG ACTIVITY
+
+                // START DIALOG ACTIVITY
+                if (isGpsEnabled || isNetworkEnabled) {
+                    //Do your stuff on GPS status change
+                    getCurrentLocation()
+                }
+
+            }
+        }
+    }
 }
