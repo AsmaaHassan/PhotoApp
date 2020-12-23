@@ -117,7 +117,10 @@ class HomeFragment : Fragment(), KodeinAware {
             setHasFixedSize(true)
             layoutManager = LinearLayoutManager(activity)
             if (weatherPhotoViewModel.liveDataSavedPhotos.value != null)
-                adapter = ImagesAdapter(weatherPhotoViewModel.liveDataSavedPhotos.value!!, this@HomeFragment.context)
+                adapter = ImagesAdapter(
+                    weatherPhotoViewModel.liveDataSavedPhotos.value!!,
+                    this@HomeFragment.context
+                )
         }
     }
 
@@ -134,20 +137,19 @@ class HomeFragment : Fragment(), KodeinAware {
             ) {
                 // permission was granted.
                 addNewPost()
-            } else {
+            }
+//            else {
                 // permission denied
 //                PermissionUtils.showApplicationSettingsDialog(activity)
-            }
+//            }
         }
 
     }
 
 
     private fun setClickListeners() {
-        llAddPost.setOnClickListener(View.OnClickListener {
-            addNewPost()
-        })
-        fabAddPost.setOnClickListener(View.OnClickListener { addNewPost() })
+        llAddPost.setOnClickListener { addNewPost() }
+        fabAddPost.setOnClickListener { addNewPost() }
     }
 
 
@@ -160,19 +162,16 @@ class HomeFragment : Fragment(), KodeinAware {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK && requestCode == REQUEST_CODE && data != null) {
-//            imageView.setImageBitmap(data.extras.get("data") as Bitmap)
             imageSuccess(data.extras?.get("data") as Bitmap)
         }
     }
 
+
     private fun imageSuccess(bitmap: Bitmap) {
-        if (bitmap != null) {
             weatherPhotoViewModel.liveDataCapturedImage.value = bitmap
             navigateToPhoto()
-        } else {
-            weatherPhotoViewModel.errorMessage.value = "Error occurred while taking picture"
-        }
     }
+
 
     private fun navigateToPhoto() {
         val transaction = activity?.supportFragmentManager?.beginTransaction()
@@ -185,15 +184,15 @@ class HomeFragment : Fragment(), KodeinAware {
 
 
     fun addNewPost() {
-        var permissions = arrayOf(
+        val permissions = arrayOf(
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.CAMERA
         )
         if (PermissionUtils.isAllPermissionGranted(this, permissions)) {
-            Log.i(TAG, "permissionAcc")
+            Log.i(TAG, "permissionAccepted")
             openCamera()
         } else {
-            Log.i(TAG, "permissioDenied")
+            Log.i(TAG, "permissionDenied")
             PermissionUtils.checkForPermissions(this, permissions)
         }
     }

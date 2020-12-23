@@ -87,7 +87,7 @@ class PhotoFragment : Fragment(), KodeinAware {
         getContext()?.registerReceiver(
             gpsReceiver,
             IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
-        );
+        )
 
         //check permissions and get data
         checkLocationPermission()
@@ -99,13 +99,13 @@ class PhotoFragment : Fragment(), KodeinAware {
 
 
     private fun steShareClickListener() {
-        imShare.setOnClickListener(View.OnClickListener {
+        imShare.setOnClickListener {
             if (weatherPhotoViewModel.liveDataCurrentFile.value != null && activity != null) {
                 UiUtils.sharePhoto(activity!!, weatherPhotoViewModel.liveDataCurrentFile.value!!)
             } else {
                 weatherPhotoViewModel.errorMessage.value = "Error occurred while sharing"
             }
-        })
+        }
     }
 
 
@@ -171,11 +171,9 @@ class PhotoFragment : Fragment(), KodeinAware {
             // notify user
             AlertDialog.Builder(context)
                 .setMessage(R.string.gps_network_not_enabled)
-                .setPositiveButton(
-                    R.string.open_location_settings,
-                    DialogInterface.OnClickListener { dialogInterface, i ->
-                        context!!.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
-                    })
+                .setPositiveButton(R.string.open_location_settings) { _, _ ->
+                    context!!.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
                 .setNegativeButton(R.string.Cancel, null)
                 .show()
             return false
@@ -184,12 +182,12 @@ class PhotoFragment : Fragment(), KodeinAware {
         }
     }
 
+
     private fun getCurrentLocation() {
         if (activity != null) {
             fusedLocationClient = LocationServices.getFusedLocationProviderClient(activity!!)
             fusedLocationClient.lastLocation
                 .addOnSuccessListener { location: Location? ->
-                    Log.i(TAG, "current location: " + location?.altitude)
                     weatherPhotoViewModel.liveDataLatitude.value = location?.latitude
                     weatherPhotoViewModel.liveDataLongitude.value = location?.longitude
 
@@ -275,7 +273,6 @@ class PhotoFragment : Fragment(), KodeinAware {
 
 
     fun add(bitmap: Bitmap) {
-        Log.i(TAG, "add() - bitmap : " + bitmap)
         val timeStamp =
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault())
                 .format(Date())
@@ -317,10 +314,11 @@ class PhotoFragment : Fragment(), KodeinAware {
                 // permission was granted.
                 if (checkLocationEnabled())
                     getCurrentLocation()
-            } else {
-                // permission denied
-//                PermissionUtils.showApplicationSettingsDialog(activity)
             }
+//            else {
+            // permission denied
+//                PermissionUtils.showApplicationSettingsDialog(activity)
+//            }
         }
 
     }
@@ -349,4 +347,6 @@ class PhotoFragment : Fragment(), KodeinAware {
             }
         }
     }
+
+
 }
